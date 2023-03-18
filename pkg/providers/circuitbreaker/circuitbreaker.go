@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/facerecog"
+	"github.com/kube-project/image-processor-service/facerecog"
 )
 
 // CircuitBreaker defines the functionality of the circuit breaker.

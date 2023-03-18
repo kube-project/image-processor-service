@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers"
+	"github.com/kube-project/image-processor-service/pkg/providers"
 )
 
 // Dependencies are providers which this service operates with.

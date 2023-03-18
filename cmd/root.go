@@ -8,11 +8,11 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/circuitbreaker"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/consumer"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/processor"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/storage"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/service"
+	"github.com/kube-project/image-processor-service/pkg/providers/circuitbreaker"
+	"github.com/kube-project/image-processor-service/pkg/providers/consumer"
+	"github.com/kube-project/image-processor-service/pkg/providers/processor"
+	"github.com/kube-project/image-processor-service/pkg/providers/storage"
+	"github.com/kube-project/image-processor-service/pkg/service"
 )
 
 var (

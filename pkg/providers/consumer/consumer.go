@@ -6,7 +6,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/rs/zerolog"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers"
+	"github.com/kube-project/image-processor-service/pkg/providers"
 )
 
 // Config configuration options for the consumer service.

@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/models"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/storage"
+	"github.com/kube-project/image-processor-service/pkg/models"
+	"github.com/kube-project/image-processor-service/pkg/providers/storage"
 )
 
 func TestGetImage(t *testing.T) {

@@ -3,7 +3,6 @@ module github.com/kube-project/image-processor-service
 go 1.20
 
 require (
-	github.com/Skarlso/kube-cluster-sample v0.0.0-20220214195818-1ecf039444c0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang/protobuf v1.5.3
 	github.com/nsqio/go-nsq v1.1.0

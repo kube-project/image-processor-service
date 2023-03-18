@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/facerecog"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/models"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/circuitbreaker"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/fakes"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/processor"
+	"github.com/kube-project/image-processor-service/facerecog"
+	"github.com/kube-project/image-processor-service/pkg/models"
+	"github.com/kube-project/image-processor-service/pkg/providers/circuitbreaker"
+	"github.com/kube-project/image-processor-service/pkg/providers/fakes"
+	"github.com/kube-project/image-processor-service/pkg/providers/processor"
 )
 
 type mockIdentify struct {

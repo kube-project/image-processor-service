@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/models"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers"
+	"github.com/kube-project/image-processor-service/pkg/models"
+	"github.com/kube-project/image-processor-service/pkg/providers"
 )
 
 // Config contains database access configuration.

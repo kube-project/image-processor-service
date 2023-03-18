@@ -9,10 +9,10 @@ import (
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 
-	"github.com/Skarlso/kube-cluster-sample/image_processor/facerecog"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/models"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers"
-	"github.com/Skarlso/kube-cluster-sample/image_processor/pkg/providers/circuitbreaker"
+	"github.com/kube-project/image-processor-service/facerecog"
+	"github.com/kube-project/image-processor-service/pkg/models"
+	"github.com/kube-project/image-processor-service/pkg/providers"
+	"github.com/kube-project/image-processor-service/pkg/providers/circuitbreaker"
 )
 
 // Config needed for the processor.
