@@ -30,3 +30,10 @@ spec:
             secretKeyRef:
               name: kube-face-secret
               key: mysql_userpassword
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "1024Mi"
+          requests:
+            cpu: "300m"
+            memory: "1024Mi"
