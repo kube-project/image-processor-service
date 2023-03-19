@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/kube-project/image-processor-service/facerecog"
 	"github.com/kube-project/image-processor-service/pkg/models"
@@ -37,10 +38,11 @@ type Processor struct {
 
 // NewProcessorProvider creates a new processor provider with an active grpc connection.
 func NewProcessorProvider(cfg Config, deps Dependencies) (providers.ProcessorProvider, error) {
-	conn, err := grpc.Dial(cfg.GrpcAddress, grpc.WithInsecure())
+	conn, err := grpc.Dial(cfg.GrpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to grpc on: %s", cfg.GrpcAddress)
 	}
+
 	c := facerecog.NewIdentifyClient(conn)
 	h := facerecog.NewHealthCheckClient(conn)
 	return &Processor{
@@ -63,7 +65,7 @@ func (p *Processor) updateImageWithPerson(personID, imageID int) error {
 
 // ProcessImages takes a channel for input and waits on that channel for processable items.
 // This channel must never be closed.
-func (p *Processor) ProcessImages(ctx context.Context, in chan int) {
+func (p *Processor) ProcessImages(ctx context.Context, in chan int) error {
 	// Setup ping for the circuitbreaker.
 	p.CircuitBreaker.SetPingF(func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -71,6 +73,7 @@ func (p *Processor) ProcessImages(ctx context.Context, in chan int) {
 		_, err := p.HealthCheckClient.HealthCheck(ctx, &facerecog.Empty{})
 		return err != nil
 	})
+
 	// continuously get ids for image processing, block until something is received.
 	for {
 		select {
@@ -78,7 +81,7 @@ func (p *Processor) ProcessImages(ctx context.Context, in chan int) {
 			p.processImage(i)
 		case <-ctx.Done():
 			p.Logger.Debug().Msg("Process image context has been cancelled. Existing.")
-			return
+			return fmt.Errorf("context was cancelled")
 		}
 	}
 }
@@ -109,6 +112,7 @@ func (p *Processor) processImage(i int) {
 		r, err := p.IdentifyClient.Identify(ctx, &facerecog.IdentifyRequest{
 			ImagePath: image.Path,
 		})
+
 		return r, err
 	})
 	r, err := p.CircuitBreaker.Call()
@@ -117,28 +121,34 @@ func (p *Processor) processImage(i int) {
 			p.Logger.Error().Err(err).Msg("could not update image to failed status")
 			return
 		}
+
 		p.Logger.Error().Err(err).Msg("image processing failed, updated image to failed status.")
 		return
 	}
+
 	name := r.GetImageName()
 	if name == "not_found" {
 		if err := p.updateImageWithFailedStatus(i); err != nil {
 			p.Logger.Error().Err(err).Msg("could not update image to failed status")
 			return
 		}
+
 		p.Logger.Error().Msg("the person could not be identified")
 		return
 	}
+
 	p.Logger.Info().Str("name", name).Msg("got name from face recog processor")
 	person, err := p.Storer.GetPersonFromImage(name)
 	if err != nil {
 		p.Logger.Error().Err(err).Msg("could not retrieve person")
 		return
 	}
+
 	p.Logger.Info().Str("person-name", person.Name).Msg("got person... updating record with person id")
 	if err := p.updateImageWithPerson(person.ID, i); err != nil {
 		p.Logger.Error().Err(err).Msg("warning: could not update image record")
 		return
 	}
+
 	p.Logger.Info().Str("name", name).Msg("done")
 }

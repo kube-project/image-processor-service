@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/kube-project/image-processor-service/pkg/providers"
 )
@@ -17,7 +19,7 @@ type Dependencies struct {
 
 // Service interface defines a service which can Run something.
 type Service interface {
-	Run(ctx context.Context)
+	Run(ctx context.Context) error
 }
 
 // New creates a new service with all of its dependencies and configurations.
@@ -34,20 +36,32 @@ type imageProcessor struct {
 
 // Run starts the this service.
 // TODO: Pass the context?
-func (s *imageProcessor) Run(ctx context.Context) {
+func (s *imageProcessor) Run(ctx context.Context) error {
 	s.deps.Logger.Info().Msg("Starting service...")
-	done := make(chan struct{})
 
 	// Create the channel on which the consumer and the processor can communicate.
 	// This should be buffered.
 	mediator := make(chan int, 1)
 
-	// Start the consumer routine.
-	go s.deps.Consumer.Consume(mediator)
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		if err := s.deps.Consumer.Consume(mediator); err != nil {
+			return fmt.Errorf("failed to start consumer: %w", err)
+		}
 
-	// Start the processor routine.
-	go s.deps.Processor.ProcessImages(context.Background(), mediator)
+		return nil
+	})
+	g.Go(func() error {
+		if err := s.deps.Processor.ProcessImages(ctx, mediator); err != nil {
+			return fmt.Errorf("failed to start process images: %w", err)
+		}
 
-	// Block forever.
-	<-done
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("failed to wait for consumer and process image: %w", err)
+	}
+
+	return nil
 }

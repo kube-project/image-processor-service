@@ -55,5 +55,7 @@ func main() {
 		Logger:    logger,
 	})
 
-	srvc.Run(context.Background())
+	if err := srvc.Run(context.Background()); err != nil {
+		logger.Fatal().Err(err).Msg("Failed to run")
+	}
 }

@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/nsqio/go-nsq"
 	"github.com/rs/zerolog"
@@ -33,20 +34,26 @@ func NewConsumer(cfg Config, deps Dependencies) providers.ConsumerProvider {
 }
 
 // Consume consumes an entry from NSQ.
-func (c *consumer) Consume(sendTo chan int) {
+func (c *consumer) Consume(sendTo chan int) error {
 	config := nsq.NewConfig()
 	q, err := nsq.NewConsumer("images", "ch", config)
 	if err != nil {
 		// this is a hard error, without the queue this service is useless.
 		c.Logger.Fatal().Err(err).Msg("failed to initiate new NSQ consumer")
+		return fmt.Errorf("failed to initiate NSQ consumer: %w", err)
 	}
+
 	q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		data := binary.LittleEndian.Uint64(message.Body)
 		sendTo <- int(data)
 		return nil
 	}))
+
 	if err := q.ConnectToNSQLookupd(c.NsqAddress); err != nil {
 		// this is a hard error, without the queue this service is useless.
 		c.Logger.Fatal().Err(err).Str("address", c.NsqAddress).Msg("failed to connect to NSQ")
+		return fmt.Errorf("failed to connect to NSQ: %w", err)
 	}
+
+	return nil
 }
