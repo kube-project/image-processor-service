@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/kube-project/image-processor-service/pkg/models"
+	"github.com/rs/zerolog"
+
 	"github.com/kube-project/image-processor-service/pkg/providers"
 )
 
@@ -19,6 +20,7 @@ type Config struct {
 	Dbname           string
 	UsernamePassword string
 	Hostname         string
+	Logger           zerolog.Logger
 }
 
 // MySQLStorage represents a storage implementation using MySQL.
@@ -103,7 +105,7 @@ func (m *MySQLStorage) GetPersonFromImage(image string) (*models.Person, error) 
 }
 
 // execInTx executes in transaction. It will either commit, or rollback if there was an error.
-func (m *MySQLStorage) execInTx(ctx context.Context, f func(tx *sql.Tx) error) error {
+func (m *MySQLStorage) execInTx(ctx context.Context, f func(tx *sql.Tx) error) (err error) {
 	db, err := m.connect()
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
@@ -114,13 +116,13 @@ func (m *MySQLStorage) execInTx(ctx context.Context, f func(tx *sql.Tx) error) e
 	}
 	// Defer a rollback in case anything fails.
 	defer func() {
-		if err := tx.Rollback(); err != nil {
-			log.Println("Failed to rollback: ", err)
+		if rerr := tx.Rollback(); rerr != nil {
+			err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", err))
 		}
 	}()
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Println("Failed to close database: ", err)
+		if cerr := db.Close(); cerr != nil {
+			err = errors.Join(err, fmt.Errorf("failed to close database connection: %w", cerr))
 		}
 	}()
 
@@ -130,6 +132,7 @@ func (m *MySQLStorage) execInTx(ctx context.Context, f func(tx *sql.Tx) error) e
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
 	return nil
 }
 
@@ -142,5 +145,15 @@ func (m *MySQLStorage) createConnectionString() string {
 }
 
 func (m *MySQLStorage) connect() (*sql.DB, error) {
-	return sql.Open("mysql", m.createConnectionString())
+	db, err := sql.Open("mysql", m.createConnectionString())
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to make connection: %w", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping connection: %w", err)
+	}
+
+	return db, nil
 }

@@ -66,7 +66,7 @@ func (p *Processor) updateImageWithPerson(personID, imageID int) error {
 // ProcessImages takes a channel for input and waits on that channel for processable items.
 // This channel must never be closed.
 func (p *Processor) ProcessImages(ctx context.Context, in chan int) error {
-	// Setup ping for the circuitbreaker.
+	// Setup ping for the circuit breaker.
 	p.CircuitBreaker.SetPingF(func() bool {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
@@ -80,7 +80,7 @@ func (p *Processor) ProcessImages(ctx context.Context, in chan int) error {
 		case i := <-in:
 			p.processImage(i)
 		case <-ctx.Done():
-			p.Logger.Debug().Msg("Process image context has been cancelled. Existing.")
+			p.Logger.Debug().Msg("Process image context has been cancelled. Exiting.")
 			return fmt.Errorf("context was cancelled")
 		}
 	}
@@ -88,7 +88,7 @@ func (p *Processor) ProcessImages(ctx context.Context, in chan int) error {
 
 // processImage will not retry processing a failed image or when the CircuitBreaker trips.
 // It will just move on to the next image and mark that image failed in the Database.
-// Further actions are taken on failed images once the Redeemer makrs the image Pending again.
+// Further actions are taken on failed images once the Redeemer marks the image Pending again.
 func (p *Processor) processImage(i int) {
 	p.Logger.Info().Int("image-id", i).Msg("Processing image...")
 

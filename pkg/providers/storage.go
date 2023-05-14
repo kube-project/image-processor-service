@@ -1,6 +1,8 @@
 package providers
 
-import "github.com/kube-project/image-processor-service/pkg/models"
+import (
+	"github.com/kube-project/image-processor-service/pkg/models"
+)
 
 // ImageStorer handles storing and updating images for the image processor.
 //

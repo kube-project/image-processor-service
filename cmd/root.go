@@ -37,7 +37,9 @@ func main() {
 	// Wire up the service and its dependencies.
 	logger := log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
 	cb := circuitbreaker.NewCircuitBreaker(logger)
-	storer := storage.NewMySQLStorage(rootArgs.dbConfig)
+	config := rootArgs.dbConfig
+	config.Logger = logger
+	storer := storage.NewMySQLStorage(config)
 	proc, err := processor.NewProcessorProvider(rootArgs.processorConfig, processor.Dependencies{
 		CircuitBreaker: cb,
 		Logger:         logger,

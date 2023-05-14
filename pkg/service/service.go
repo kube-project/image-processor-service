@@ -17,26 +17,20 @@ type Dependencies struct {
 	Logger    zerolog.Logger
 }
 
-// Service interface defines a service which can Run something.
-type Service interface {
-	Run(ctx context.Context) error
-}
-
 // New creates a new service with all of its dependencies and configurations.
-func New(deps Dependencies) Service {
-	return &imageProcessor{
+func New(deps Dependencies) *ImageProcessor {
+	return &ImageProcessor{
 		deps: deps,
 	}
 }
 
-// Service represents the service object of the receiver.
-type imageProcessor struct {
+// ImageProcessor represents the service object of the receiver.
+type ImageProcessor struct {
 	deps Dependencies
 }
 
-// Run starts the this service.
-// TODO: Pass the context?
-func (s *imageProcessor) Run(ctx context.Context) error {
+// Run starts the service.
+func (s *ImageProcessor) Run(ctx context.Context) error {
 	s.deps.Logger.Info().Msg("Starting service...")
 
 	// Create the channel on which the consumer and the processor can communicate.

@@ -3,9 +3,9 @@ package tests
 import (
 	"testing"
 
+	"github.com/kube-project/image-processor-service/pkg/models"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/kube-project/image-processor-service/pkg/models"
 	"github.com/kube-project/image-processor-service/pkg/providers/storage"
 )
 
