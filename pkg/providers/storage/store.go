@@ -116,17 +116,15 @@ func (m *MySQLStorage) execInTx(ctx context.Context, f func(tx *sql.Tx) error) (
 	}
 	// Defer a rollback in case anything fails.
 	defer func() {
-		if rerr := tx.Rollback(); rerr != nil {
-			err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", err))
-		}
-	}()
-	defer func() {
 		if cerr := db.Close(); cerr != nil {
 			err = errors.Join(err, fmt.Errorf("failed to close database connection: %w", cerr))
 		}
 	}()
 
 	if err := f(tx); err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", err))
+		}
 		return fmt.Errorf("failed to run function in transaction: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
