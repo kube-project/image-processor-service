@@ -28,7 +28,7 @@ func init() {
 	flag.StringVar(&rootArgs.dbConfig.UsernamePassword, "db-username-password", "root:password123", "--db-username-password=root:password123")
 	flag.StringVar(&rootArgs.dbConfig.Dbname, "db-dbname", "kube", "--db-dbname=kube")
 	flag.StringVar(&rootArgs.dbConfig.Port, "db-port", "3306", "--db-port=3306")
-	flag.StringVar(&rootArgs.processorConfig.GrpcAddress, "grpc-address", "localhost:50051", "--grpc-address=localhost:50051")
+	flag.StringVar(&rootArgs.processorConfig.FaceRecognitionAddress, "face-recognition-service-address", "localhost:50051", "--face-recognition-service-address=localhost:50051")
 	flag.StringVar(&rootArgs.consumerConfig.NsqAddress, "nsq-lookup-address", "127.0.0.1:4161", "--nsq-lookup-address=127.0.0.1:4161")
 	flag.Parse()
 }

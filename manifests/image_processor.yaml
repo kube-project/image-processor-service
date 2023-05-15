@@ -31,7 +31,7 @@ spec:
           - --db-port=3306
           - --db-dbname=kube
           - --nsq-lookup-address=nsqlookup.default.svc.cluster.local:4161
-          - --grpc-address=face-recog.default.svc.cluster.local:50051
+          - --face-recognition-service-address=face-recog.default.svc.cluster.local:50051
         env:
         - name: MYSQL_USERPASSWORD
           valueFrom:

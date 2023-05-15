@@ -18,7 +18,7 @@ import (
 
 // Config needed for the processor.
 type Config struct {
-	GrpcAddress string
+	FaceRecognitionAddress string
 }
 
 // Dependencies of the processor provider.
@@ -38,9 +38,9 @@ type Processor struct {
 
 // NewProcessorProvider creates a new processor provider with an active grpc connection.
 func NewProcessorProvider(cfg Config, deps Dependencies) (providers.ProcessorProvider, error) {
-	conn, err := grpc.Dial(cfg.GrpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(cfg.FaceRecognitionAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("could not connect to grpc on: %s", cfg.GrpcAddress)
+		return nil, fmt.Errorf("could not connect to grpc on: %s", cfg.FaceRecognitionAddress)
 	}
 
 	c := facerecog.NewIdentifyClient(conn)
@@ -109,11 +109,17 @@ func (p *Processor) processImage(i int) {
 	p.CircuitBreaker.SetCallF(func() (*facerecog.IdentifyResponse, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
+
+		p.Logger.Debug().Str("path", image.Path).Msg("calling identify with image")
 		r, err := p.IdentifyClient.Identify(ctx, &facerecog.IdentifyRequest{
 			ImagePath: image.Path,
 		})
 
-		return r, err
+		if err != nil {
+			return nil, fmt.Errorf("failed to call face recognition service: %w", err)
+		}
+
+		return r, nil
 	})
 	r, err := p.CircuitBreaker.Call()
 	if err != nil {
