@@ -44,12 +44,15 @@ func (m *MySQLStorage) GetImage(id int) (*models.Image, error) {
 		person int
 		status int
 	)
+
 	f := func(tx *sql.Tx) error {
 		return tx.QueryRow("select path, person, status from images where id = ?", id).Scan(&path, &person, &status)
 	}
+
 	if err := m.execInTx(context.Background(), f); err != nil {
 		return nil, fmt.Errorf("failed to get path: %w", err)
 	}
+
 	return &models.Image{
 		ID:     id,
 		Path:   path,
@@ -94,13 +97,20 @@ func (m *MySQLStorage) GetPersonFromImage(image string) (*models.Person, error) 
 		name string
 		id   int
 	)
+
 	f := func(tx *sql.Tx) error {
 		return tx.QueryRow(`select person.name, person.id from person inner join person_images
 					   as pi on person.id = pi.person_id where image_name = ?`, image).Scan(&name, &id)
 	}
+
 	if err := m.execInTx(context.Background(), f); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("no person found for image %s", image)
+		}
+
 		return nil, fmt.Errorf("failed to get person: %w", err)
 	}
+
 	return &models.Person{Name: name, ID: id}, nil
 }
 

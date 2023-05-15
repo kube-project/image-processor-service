@@ -146,6 +146,11 @@ func (p *Processor) processImage(i int) {
 	p.Logger.Info().Str("name", name).Msg("got name from face recog processor")
 	person, err := p.Storer.GetPersonFromImage(name)
 	if err != nil {
+		if err := p.updateImageWithFailedStatus(i); err != nil {
+			p.Logger.Error().Err(err).Msg("could not update image to failed status")
+			return
+		}
+
 		p.Logger.Error().Err(err).Msg("could not retrieve person")
 		return
 	}
